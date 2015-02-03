@@ -46,17 +46,27 @@ The [Conn][] type combines an [Encoder][] and [Decoder][] for a duplex connectio
     // Methods from both Encoder and Decoder are available
     message, err := c.Decode()
 
-## Future plans
+## Examples
+Check these other projects for an example on how to use the package:
 
- - Basic event-based client, in a separate package.
- - Support for IRCv3 message tags.
- - Example code
+Clients:
+
+ - https://github.com/nickvanw/ircx (great simple example)
+ - https://github.com/FSX/jun
+ - https://github.com/jnwhiteh/wallops
+ - https://github.com/Alligator/gomero
+ - https://github.com/msparks/iq
+ - https://github.com/TheCreeper/HackBot
+
+Servers:
+
+ - https://github.com/nightexcessive/excessiveircd
 
 
 [Documentation]: https://godoc.org/github.com/sorcix/irc "Package documentation by Godoc.org"
-[Message]: http://godoc.org/github.com/sorcix/irc#Message "Message type documentation"
-[Prefix]: http://godoc.org/github.com/sorcix/irc#Prefix "Prefix type documentation"
-[Encoder]: http://godoc.org/github.com/sorcix/irc#Encoder "Encoder type documentation"
-[Decoder]: http://godoc.org/github.com/sorcix/irc#Decoder "Decoder type documentation"
-[Conn]: http://godoc.org/github.com/sorcix/irc#Conn "Conn type documentation"
-[RFC1459]: http://tools.ietf.org/html/rfc1459.html "RFC 1459"
+[Message]: https://godoc.org/github.com/sorcix/irc#Message "Message type documentation"
+[Prefix]: https://godoc.org/github.com/sorcix/irc#Prefix "Prefix type documentation"
+[Encoder]: https://godoc.org/github.com/sorcix/irc#Encoder "Encoder type documentation"
+[Decoder]: https://godoc.org/github.com/sorcix/irc#Decoder "Decoder type documentation"
+[Conn]: https://godoc.org/github.com/sorcix/irc#Conn "Conn type documentation"
+[RFC1459]: https://tools.ietf.org/html/rfc1459.html "RFC 1459"

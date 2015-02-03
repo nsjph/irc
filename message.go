@@ -16,16 +16,22 @@ const (
 	prefixHost byte = 0x40 // Hostname
 	space      byte = 0x20 // Separator
 
-	cutset string = "\r\n\x20\x00" // Characters to trim from prefixes/messages.
-
 	maxLength = 510 // Maximum length is 512 - 2 for the line endings.
 )
+
+func cutsetFunc(r rune) bool {
+	// Characters to trim from prefixes/messages.
+	return r == '\r' || r == '\n' || r == '\x20' || r == '\x00'
+}
 
 // Objects implementing the Sender interface are able to send messages to an IRC server.
 //
 // As there might be a message queue, it is possible that Send returns a nil
 // error, but the message is not sent (yet). The error value is only used when
 // it is certain that sending the message is impossible.
+//
+// This interface is not used inside this package, and shouldn't have been
+// defined here in the first place. For backwards compatibility only.
 type Sender interface {
 	Send(*Message) error
 }
@@ -46,8 +52,8 @@ func ParsePrefix(raw string) (p *Prefix) {
 
 	p = new(Prefix)
 
-	user := strings.IndexByte(raw, prefixUser)
-	host := strings.IndexByte(raw, prefixHost)
+	user := indexByte(raw, prefixUser)
+	host := indexByte(raw, prefixHost)
 
 	switch {
 
@@ -105,7 +111,7 @@ func (p *Prefix) IsHostmask() bool {
 
 // IsServer returns true if this prefix looks like a server name.
 func (p *Prefix) IsServer() bool {
-	return len(p.User) <= 0 && len(p.Host) <= 0 // && strings.IndexByte(p.Name, '.') > 0
+	return len(p.User) <= 0 && len(p.Host) <= 0 // && indexByte(p.Name, '.') > 0
 }
 
 // writeTo is an utility function to write the prefix to the bytes.Buffer in Message.String().
@@ -142,6 +148,9 @@ type Message struct {
 	Command  string
 	Params   []string
 	Trailing string
+
+	// When set to true, the trailing prefix (:) will be added even if the trailing message is empty.
+	EmptyTrailing bool
 }
 
 // ParseMessage takes a string and attempts to create a Message struct.
@@ -149,7 +158,7 @@ type Message struct {
 func ParseMessage(raw string) (m *Message) {
 
 	// Ignore empty messages.
-	if raw = strings.Trim(raw, cutset); len(raw) < 2 {
+	if raw = strings.TrimFunc(raw, cutsetFunc); len(raw) < 2 {
 		return nil
 	}
 
@@ -160,7 +169,7 @@ func ParseMessage(raw string) (m *Message) {
 	if raw[0] == prefix {
 
 		// Prefix ends with a space.
-		i = strings.IndexByte(raw, space)
+		i = indexByte(raw, space)
 
 		// Prefix string must not be empty if the indicator is present.
 		if i < 2 {
@@ -174,7 +183,7 @@ func ParseMessage(raw string) (m *Message) {
 	}
 
 	// Find end of command
-	j = i + strings.IndexByte(raw[i:], space)
+	j = i + indexByte(raw[i:], space)
 
 	// Extract command
 	if j > i {
@@ -190,7 +199,7 @@ func ParseMessage(raw string) (m *Message) {
 	j++
 
 	// Find prefix for trailer
-	i = strings.IndexByte(raw[j:], prefix)
+	i = indexByte(raw[j:], prefix)
 
 	if i < 0 {
 
@@ -210,6 +219,11 @@ func ParseMessage(raw string) (m *Message) {
 	}
 
 	m.Trailing = raw[i+1:]
+
+	// We need to re-encode the trailing argument even if it was empty.
+	if len(m.Trailing) <= 0 {
+		m.EmptyTrailing = true
+	}
 
 	return m
 
@@ -231,7 +245,7 @@ func (m *Message) Len() (length int) {
 		}
 	}
 
-	if len(m.Trailing) > 0 {
+	if len(m.Trailing) > 0 || m.EmptyTrailing {
 		length = length + len(m.Trailing) + 2 // Include prefix and space
 	}
 
@@ -263,7 +277,7 @@ func (m *Message) Bytes() []byte {
 		buffer.WriteString(strings.Join(m.Params, string(space)))
 	}
 
-	if len(m.Trailing) > 0 {
+	if len(m.Trailing) > 0 || m.EmptyTrailing {
 		buffer.WriteByte(space)
 		buffer.WriteByte(prefix)
 		buffer.WriteString(m.Trailing)

@@ -16,7 +16,32 @@ const (
 	Voice        = '+' // User has voice +v
 )
 
-// IRC commands extracted from RFC2812 section 3.
+// User modes as defined by RFC1459 section 4.2.3.2.
+const (
+	UserModeInvisible     = 'i' // User is invisible
+	UserModeServerNotices = 's' // User wants to receive server notices
+	UserModeWallops       = 'w' // User wants to receive Wallops
+	UserModeOperator      = 'o' // Server operator
+)
+
+// Channel modes as defined by RFC1459 section 4.2.3.1
+const (
+	ModeOperator   = 'o' // Operator privileges
+	ModeVoice      = 'v' // Ability to speak on a moderated channel
+	ModePrivate    = 'p' // Private channel
+	ModeSecret     = 's' // Secret channel
+	ModeInviteOnly = 'i' // Users can't join without invite
+	ModeTopic      = 't' // Topic can only be set by an operator
+	ModeModerated  = 'm' // Only voiced users and operators can talk
+	ModeLimit      = 'l' // User limit
+	ModeKey        = 'k' // Channel password
+
+	ModeOwner        = 'q' // Owner privileges (non-standard)
+	ModeAdmin        = 'a' // Admin privileges (non-standard)
+	ModeHalfOperator = 'h' // Half-operator privileges (non-standard)
+)
+
+// IRC commands extracted from RFC2812 section 3 and RFC2813 section 4.
 const (
 	PASS     = "PASS"
 	NICK     = "NICK"
@@ -63,6 +88,8 @@ const (
 	WALLOPS  = "WALLOPS"
 	USERHOST = "USERHOST"
 	ISON     = "ISON"
+	SERVER   = "SERVER"
+	NJOIN    = "NJOIN"
 )
 
 // Numeric IRC replies extracted from RFC2812 section 5.

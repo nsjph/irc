@@ -9,15 +9,13 @@ import (
 	"testing"
 )
 
-type messageTest struct {
+var messageTests = [...]*struct {
 	parsed     *Message
 	rawMessage string
 	rawPrefix  string
 	hostmask   bool // Is it very clear that the prefix is a hostname?
 	server     bool // Is the prefix a servername?
-}
-
-var messageTests = [...]*messageTest{
+}{
 	{
 		parsed: &Message{
 			Prefix: &Prefix{
@@ -237,6 +235,25 @@ var messageTests = [...]*messageTest{
 		rawMessage: ":  PRIVMSG test :Invalid message with space prefix",
 		rawPrefix:  " ",
 	},
+	{
+		parsed: &Message{
+			Command:  "TOPIC",
+			Params:   []string{"#foo"},
+			Trailing: "",
+		},
+		rawMessage: "TOPIC #foo",
+		rawPrefix:  "",
+	},
+	{
+		parsed: &Message{
+			Command:       "TOPIC",
+			Params:        []string{"#foo"},
+			Trailing:      "",
+			EmptyTrailing: true,
+		},
+		rawMessage: "TOPIC #foo :",
+		rawPrefix:  "",
+	},
 }
 
 // -----
@@ -400,6 +417,34 @@ func TestParseMessage(t *testing.T) {
 			t.Errorf("Failed to parse message %d:", i)
 			t.Logf("Output: %#v", p)
 			t.Logf("Expected: %#v", test.parsed)
+		}
+	}
+}
+
+// -----
+// MESSAGE DECODE -> ENCODE
+// -----
+
+func TestMessageDecodeEncode(t *testing.T) {
+	var (
+		p *Message
+		s string
+	)
+
+	for i, test := range messageTests {
+
+		// Skip invalid messages
+		if test.parsed == nil {
+			continue
+		}
+
+		// Decode the message, then encode it again.
+		p = ParseMessage(test.rawMessage)
+		s = p.String()
+
+		// Result struct should be the same as the original.
+		if s != test.rawMessage {
+			t.Errorf("Message %d failed decode-encode sequence!", i)
 		}
 	}
 }
